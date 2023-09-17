@@ -1,48 +1,63 @@
-import asyncio
-import aiohttp
-from tqdm import tqdm
-from colorama import init, Fore
+import pandas as pd
+import click
+import requests
+import os
+import urllib3
 
-# Initialize colorama for ANSI color support on Windows
-init(autoreset=True)
+urllib3.disable_warnings()
 
-async def fetch_joke(session, url):
-    async with session.get(url) as response:
-        data = await response.json()
-        return data.get('value', 'No joke found')
+url = f"https://{os.getenv('WEBSITE')}.leankit.com/io"
+headers = {
+    "Authorization": f"Bearer {os.getenv('AGILEPLACE')}",
+    "Content-Type": "application/json",
+}
 
-async def main():
-    urls = ['https://api.chucknorris.io/jokes/random'] * 10000  # Example: Fetch the URL 10 times
 
-    async with aiohttp.ClientSession() as session:
-        tasks = [fetch_joke(session, url) for url in urls]
+# Replace with your AgilePlace API endpoint
+@click.command()
+def cards():
+    api_url = f"{url}/board"
+    board_details_url = f"{api_url}/2003022297"
 
-        num_tasks = len(tasks)
-        color_changes = [0.2, 0.4, 0.6, 0.8]  # Completion percentages to change colors
+    card = f"{board_details_url}/card"
 
-        with tqdm(total=num_tasks, unit="jokes", ncols=100) as pbar:
-            for i, task in enumerate(asyncio.as_completed(tasks), start=1):
-                joke = await task
-                pbar.update(1)
+    card_resp = requests.get(card, headers=headers, verify=False)
+    if card_resp.ok:
+        x = card_resp.json()['cards']
+        df = pd.DataFrame.from_dict(x)
+        df.to_csv("cards.csv")
 
-                # Calculate current completion percentage
-                completion_percentage = i / num_tasks
+    # # Make a GET request
+    # response = requests.get(api_url, headers=headers)
+    # resp = requests.get(board_details_url, headers=headers)
+    # parent = requests.get(parent_card_url, headers=headers)
+    # if parent.ok:
+    #     print(json.dumps(parent.json(), indent=4))
+    # if resp.ok:
+    #     print(json.dumps(resp.json(), indent=4))
+    #
+    # if response.status_code == 200:
+    #     # Request was successful
+    #     data = response.json()
+    #     print(json.dumps(data))
+    # else:
+    #     print(f"Error: {response.status_code}")
 
-                # Change color based on completion percentage
-                if completion_percentage >= color_changes[3]:
-                    color = Fore.GREEN
-                elif completion_percentage >= color_changes[2]:
-                    color = Fore.YELLOW
-                elif completion_percentage >= color_changes[1]:
-                    color = Fore.RED
-                elif completion_percentage >= color_changes[0]:
-                    color = Fore.MAGENTA
-                else:
-                    color = Fore.BLUE
 
-                pbar.set_description(color + f"Progress: {completion_percentage * 100:.1f}%")
+@click.command()
+def boards():
+    api_url = f"{url}/board"
+    board_details_url = f"{api_url}/2003022297"
 
-                # print(color + f"Chuck Norris Joke: {joke}")
+    board_resp = requests.get(board_details_url, headers=headers, verify=False)
+    if board_resp.ok:
+        x = board_resp.json()["users"]
+        df = pd.DataFrame.from_dict(x)
+        df.to_csv("users.csv")
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    cli = click.Group()
+    cli.add_command(cards)
+    cli.add_command(boards)
+    cli()
