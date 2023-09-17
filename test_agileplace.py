@@ -52,7 +52,5 @@ def test_create_csv():
         create_csv([{"key": "value"}], "test_create_csv")
 
 
-
-
 if __name__ == "__main__":
     pytest.main()
