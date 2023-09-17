@@ -1,4 +1,4 @@
-# Welcome to automation for AgilePlace
+# Welcome to Automation for AgilePlace
 
 
 This repo represents starter code for a CLI application that can interact with Planview Agileplace using the V2 REST API 
