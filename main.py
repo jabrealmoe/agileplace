@@ -18,42 +18,26 @@ headers = {
 def cards():
     api_url = f"{url}/board"
     board_details_url = f"{api_url}/2003022297"
-
     card = f"{board_details_url}/card"
-
     card_resp = requests.get(card, headers=headers, verify=False)
     if card_resp.ok:
-        x = card_resp.json()['cards']
-        df = pd.DataFrame.from_dict(x)
-        df.to_csv("cards.csv")
+        create_csv(card_resp, "cards")
 
-    # # Make a GET request
-    # response = requests.get(api_url, headers=headers)
-    # resp = requests.get(board_details_url, headers=headers)
-    # parent = requests.get(parent_card_url, headers=headers)
-    # if parent.ok:
-    #     print(json.dumps(parent.json(), indent=4))
-    # if resp.ok:
-    #     print(json.dumps(resp.json(), indent=4))
-    #
-    # if response.status_code == 200:
-    #     # Request was successful
-    #     data = response.json()
-    #     print(json.dumps(data))
-    # else:
-    #     print(f"Error: {response.status_code}")
+
+def create_csv(card_resp, name):
+    x = card_resp.json()[name]
+    df = pd.DataFrame.from_dict(x)
+    df.to_csv(f"{name}.csv")
+    print(f"Writing file {name}.csv")
 
 
 @click.command()
 def boards():
     api_url = f"{url}/board"
     board_details_url = f"{api_url}/2003022297"
-
     board_resp = requests.get(board_details_url, headers=headers, verify=False)
     if board_resp.ok:
-        x = board_resp.json()["users"]
-        df = pd.DataFrame.from_dict(x)
-        df.to_csv("users.csv")
+        create_csv(board_resp, "users")
 
 
 if __name__ == "__main__":
